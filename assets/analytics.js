@@ -20,19 +20,20 @@ async function preflight(){const response=await timeout(fetch(`https://sr-client
 function assertExplicitConfig(config){if(config.autocapture!==false||config.defaultTracking!==false)throw fail('Remote Analytics configuration has overridden explicit-only tracking. Initialization is stopped; resolve the project configuration before rehearsal.');}
 function enrichment(){return{name:'pasha-contract',type:'enrichment',setup:async config=>{assertExplicitConfig(config);},execute:async event=>{event.country='Azerbaijan';event.event_properties={...S.context(event.event_properties?.insurance_type),...event.event_properties};if(event.event_type==='$exposure')return event;if(event.event_type.startsWith('[Amplitude]')&&event.event_type!=='[Amplitude] Page Viewed'){throw fail('Unexpected automatic event blocked: '+event.event_type);}record('outgoing_enriched',{event});return event;}};}
 async function bootstrap(){const u=S.getUser();if(!u)throw fail('Select a coverage preference and simulated identity first.');recordEnabled=!S.treatment&&!!u.record;record('bootstrap_requested',{treatment:S.treatment});
- await preflight();await load('analytics');client=window.amplitude;await load('replay');await load('feature');await load('engagement');
+ // Download independent libraries together; do not initialize capture until privacy passes.
+ await Promise.all([preflight(),load('analytics'),load('replay'),load('feature'),load('engagement')]);client=window.amplitude;
  replay=window.sessionReplay.plugin({sampleRate:1,serverZone:'US',forceSessionTracking:false,privacyConfig:{defaultMaskLevel:'medium'}});
  engagement=window.engagement.plugin({serverZone:'US'});
  const registrations=[client.add(enrichment()).promise,client.add(replay).promise,client.add(engagement).promise];
  const freshIdentity=u.identityChange?{deviceId:crypto.randomUUID(),sessionId:Date.now(),optOut:false}:{};
- await timeout(client.init(API_KEY,u.id,{...freshIdentity,serverZone:'US',autocapture:false,defaultTracking:false,fetchRemoteConfig:true,remoteConfig:{fetchRemoteConfig:true},sessionTimeout:30*60*1000,identify:userIdentify(),enableDiagnostics:false,flushMaxRetries:2,trackingOptions:{ipAddress:false}}).promise);await timeout(Promise.all(registrations));initCount++;
+ await timeout(client.init(API_KEY,u.id,{...freshIdentity,serverZone:'US',autocapture:false,defaultTracking:false,fetchRemoteConfig:true,remoteConfig:{fetchRemoteConfig:true},sessionTimeout:30*60*1000,identify:userIdentify(),enableDiagnostics:false,flushIntervalMillis:50,flushMaxRetries:2,trackingOptions:{ipAddress:false}}).promise);await timeout(Promise.all(registrations));initCount++;
  await identifyForPage();session=client.getSessionId();
  feature=window.Experiment.initializeWithAmplitudeAnalytics(API_KEY,{serverZone:'US',automaticExposureTracking:false,automaticFetchOnAmplitudeIdentityChange:false,fetchOnStart:false,pollOnStart:false,retryFetchOnFailure:false,throwOnError:true});
  if(u.identityChange){feature.clear();u.identityChange=false;S.persist();}
- await timeout(feature.fetch({user_id:u.id,device_id:client.getDeviceId(),country:'Azerbaijan',user_properties:S.context()}));featureDelivery={verified:true,at:new Date().toISOString(),user_id:feature.getUser()?.user_id};
+ const featureReady=timeout(feature.fetch({user_id:u.id,device_id:client.getDeviceId(),country:'Azerbaijan',user_properties:S.context()})).then(()=>{featureDelivery={verified:true,at:new Date().toISOString(),user_id:feature.getUser()?.user_id};});
  // Loading the delivered project Web script self-initializes it. Its auto-plugin flag is false
  // in the inspected binary; add its Analytics event-trigger plugin once, after identity.
- await load('web');if(!window.WebExperiment?.initialize||!window.webExperiment||window.webExperiment.isStub)throw fail('Web Experiment did not initialize. Do not rehearse until this is resolved.');
+ await Promise.all([featureReady,load('web')]);if(!window.WebExperiment?.initialize||!window.webExperiment||window.webExperiment.isStub)throw fail('Web Experiment did not initialize. Do not rehearse until this is resolved.');
  if(typeof window.webExperiment.plugin==='function'){await client.add(window.webExperiment.plugin()).promise;webRegistered=true;}
  const stamp=`pasha-session:${u.id}`;if(sessionStorage.getItem(stamp)!==String(session)){await send('Session Started',{session_id:session},{insert_id:`${u.id}:session:${session}`});sessionStorage.setItem(stamp,String(session));}
  record('bootstrap_initialized',{session_id:session});return sdkCheck();}

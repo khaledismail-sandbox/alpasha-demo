@@ -1,6 +1,6 @@
 # PAŞA Sığorta mobile browser simulation
 
-**Status: ready for Khaled’s manual GitHub upload.** The 26 screens, four persona/status combinations, live main-app SDK delivery, premium revenue, attribution and genuine Medium-masked Replay were checked on 18 November 2026. The published GitHub Pages origin still needs its final check after the actual URL exists. No repository or site was published by this builder.
+**Status: ready for Khaled’s manual GitHub upload.** The 26 screens, four persona/status combinations, live main-app SDK delivery, premium revenue, attribution and genuine Medium-masked Replay were checked on 18 November 2026. The subsequent login correction was checked locally only; it sent nothing to Amplitude and needs its changed files uploaded to update a hosted copy. The published GitHub Pages origin still needs its final check after the actual URL exists. No repository or site was published by this builder.
 
 The normal app initializes its integrations automatically for a selected account. There is no localhost restriction, allowlist, expiry or hidden activation step. The treatment is intentionally presentation-only, per Khaled’s instruction.
 
@@ -19,7 +19,7 @@ The builder used the existing Python server implementation in `_tools/preview.py
 ## Confident purchaser: click-by-click
 
 1. Open the demo base. The login is explicitly simulated; use no real identity or payment data.
-2. Scroll to the very bottom, expand **Preferences**. Leave **I know the cover I need** selected. Leave **Existing motor policyholder** unchecked for a new prospect. Select a fresh approved **Session number** for a live rehearsal.
+2. Enter a fictional **Name** and **Demo number** (default 1) in the login form. The full **User ID** updates live. At the very bottom, expand **Preferences**. Leave **I know the cover I need** selected and **Existing motor policyholder** unchecked for a new prospect. Use a different demo number for each persona/status recording.
 3. Return to **Continue**. Bir ID/MyGov ID are labels for fictional access only. **Create an account** exercises the corresponding separate account-created action.
 4. On Home, click the **Next stop, Georgia** banner. Click **Get a quote**.
 5. Keep Georgia, 1–7 December 2026 and 1 traveler. Click **See my quote**. The example premium is **45.00 AZN**.
@@ -30,7 +30,7 @@ The builder used the existing Python server implementation in `_tools/preview.py
 
 ## Coverage explorer: click-by-click
 
-1. Open the base, expand bottom **Preferences**, select **Help me understand the cover**. Independently choose whether this identity is an existing motor policyholder. Use the approved run.
+1. Open the base. Enter a fictional **Name** and a fresh **Demo number** in the login form; check the live User ID. Expand bottom **Preferences**, select **Help me understand the cover**, and independently choose existing motor-policyholder status. Do not start a live recording without its write approval.
 2. Click **Continue → Georgia banner → Get a quote → See my quote**.
 3. Click **Review cover to continue** (or **Understand the cover**). This is an actual help interaction, not an automatic friction event.
 4. Optionally open **Emergency medical care** or **Trip disruption**, then **Return to my quote**. Alternatively use **Back to my quote** directly from help.
@@ -59,8 +59,8 @@ Home, Products, Services and Support are the four tabs. Services opens policies 
 
 ## Reset, identity and attribution
 
-- The small sign-in disclosure contains fictional name choices, coverage preference, independent motor status, run and opt-in local recorder. Identity is normalized fictional name + persona + entry status + run + Dubai date.
-- Ordinary navigation/refresh retains the current quote, selected policy and session. Intentional sign-in starts a clean journey: quotes, plans, cart, abandonment state, policies, recommendations and local recorder state clear; baseline and original acquisition remain tied to that identity. A new run means a fresh identity. Live checks verified separate device/session identities on deliberate persona/status changes and continuity within ordinary navigation.
+- The main login collects editable **Name + Demo number** (default 1) and shows the generated full User ID live. The exact format is `cleanname_number_YYYYMMDD`, using the Dubai date; for example `aylin_1_20261118`. Name normalization trims, lowercases and removes non-ASCII letters/digits, falling back to `user`. Account shows the same full ID. Only coverage preference, independent motor status and the optional local recorder are in the small bottom Preferences disclosure. Different persona/status recordings must use different demo numbers; the app refuses to reuse a stored identity for a different segment. Existing legacy-format profiles are not merged or rewritten. A new Dubai date requires sign-in again.
+- Ordinary navigation/refresh retains the current quote, selected policy and session. Intentional sign-in starts a clean journey: quotes, plans, cart, abandonment state, policies, recommendations and local recorder state clear; baseline and original acquisition remain tied to that identity. A new demo number means a fresh identity. Live checks verified separate device/session identities on deliberate persona/status changes and continuity within ordinary navigation.
 - Sign out is the explicit session boundary and clears dependent local state. First-touch attribution stays with the retained fictional profile, so returning users are not manufactured as Direct.
 - Incoming attribution uses the exact supplied vocabulary. Pasting a Google-tagged link sets observed URL tags, **not** a fake google.com referrer. Fresh Direct has absent UTM/referrer fields; custom descriptive fields say direct/direct/not_applicable. No native install attribution is claimed.
 - Local fixtures are browser state, not a historical Amplitude upload. The frozen 2,000-user data remains outside this site. Its separately authorized upload was completed in the companion chat; no browser upload action exists.
@@ -111,3 +111,6 @@ Khaled publishes manually. No repository has been created or deployed by this bu
 Browser SDK 2.49.3, Replay plugin 1.37.0, Feature Experiment 1.24.0 and separate project-managed Web Experiment/Engagement scripts. One wrapper, one bootstrap per document, no unified loader. Public configuration uses PASHA project 911590, US, organization 432322. All live writes require the exact named batch and go first. Do not create charts, experiment, flag, guide or notebook from this app build.
 
 See brand.md for the measured palette/font approximation, and verification.md for actual evidence and unfinished checks. Five-screen visual audit only: Home, Products, Policy detail, Quote review, treatment. One visual fix pass completed; no claim of a full native clone.
+
+## Performance update
+Replace `assets/analytics.js` in the GitHub repository to apply the loading/timer correction. The login update uses `assets/app.js` and `assets/state.js`; keep those updated copies. Independent libraries load concurrently, with privacy checked before capture; events still require acknowledged identity and accepted delivery before navigation. The correction was tested offline only with no Amplitude writes; published performance has not been measured.
